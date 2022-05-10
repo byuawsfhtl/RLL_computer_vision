@@ -7,7 +7,7 @@ assignees: haltosan
 
 ---
 
-sk any questions you wish to be addressed towards the entire team or submit any bugs/issues with the current software.
+Ask any questions you wish to be addressed towards the entire team or submit any bugs/issues with the current software.
 
 If it is a bug, try to answer the following questions:
 
