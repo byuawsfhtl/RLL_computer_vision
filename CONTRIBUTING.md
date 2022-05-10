@@ -1,6 +1,7 @@
 # Contributing
 
-Here are some good practices that should help the Github page be a bit more consistent.
+Here are some good practices that should help the Github page be a bit more consistent. Keep in mind **THIS IS A PUBLIC REPOSITORY. ONLY UPLOAD FILES THAT WE ARE ALLOWED
+TO SHARE**.
 
 ## Project board
 
