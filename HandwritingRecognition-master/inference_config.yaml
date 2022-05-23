@@ -1,0 +1,28 @@
+# INFERENCE CONFIGURATION FILE
+
+# The path to the images to be inferred
+img_path: ./data/example/test_images
+# Include subdirectories of img_path, if set to False any directories within img_path will be ignored
+img_path_subdirs: True
+# The output path to the results of the inference
+out_path: ./data/example/iam_inference.csv
+# The path to the pre-trained model weights to be used during inference
+model_in: ./data/model_weights/example_model/run1
+# The size which all images will be resized/padded for inference on the model
+img_size: (64, 1024)
+# The batch size to be used when performing inference on the model (how many images will be inferred at once)
+batch_size: 32
+# The max number of characters in a line-level transcription
+max_seq_size: 128
+# String including the character set for the model (charset: abcd1234) If no characters are specified, the default is used.
+charset:
+
+# Whether or not to use the Word Beam Search decoding algorithm (Note that all parameters following 'use_wbs' are only
+# required when use_wbs is set to True).
+use_wbs: False
+# Non-Punctuation character set (wbs_word_charset: '12345'). If not characters are specified, the default is used.
+wbs_word_charset:
+# Beam width use for wbs algorithm
+wbs_beam_width: 15
+# Word Beam Search dictionary file path, if not blank, the words in the file will be used to constrain the wbs algorithm
+wbs_dictionary_path:
