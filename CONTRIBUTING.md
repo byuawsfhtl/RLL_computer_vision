@@ -1,6 +1,6 @@
 # Contributing
 
-Here are some good practices that should help the Github page be a bit more consistent. Everything is private, so nobody outside of the lab can view anything you upload or post.
+Here are some good practices that should help the Github page be a bit more consistent. **THIS IS A PUBLIC REPOSITORY. ONLY UPLOAD WHAT WE ARE ALLOWED TO SHARE.** The repository needs to be public to enable the Wiki. The project boards are private, so nobody outside of the lab can view on them.
 
 ## Project board
 
