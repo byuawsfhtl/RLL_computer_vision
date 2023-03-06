@@ -4,7 +4,7 @@ APPROX_THRESH = 10
 ROW_LENGTH = 1000
 
 VOLUME_NUM = '85'
-IMAGE_NUM = '11'
+IMAGE_NUM = '12'
 
 import os
 import json
@@ -86,50 +86,34 @@ def addShapes():
     print(shapesAdded, 'shapes added')
 
 
-def approx(a:float, b:float)->bool:
-    return abs(a-b) < APPROX_THRESH
-
-def rowLength(a:float, b:float)->bool:
-    return abs(a-b) > ROW_LENGTH
-
-def makeLine(a:[int,int], b:[int,int])->str:
-    if(approx(a[0], b[0]) and not rowLength(a[0],b[0])):
-        if(a[1] < b[1]):
-            return 'Down'
-        return 'Up'
-    if(approx(a[1], b[1])):
-        if(a[0] < b[0]):
-            return 'Right'
-        return 'Left'
-    if(a[0] < b[0]):
-        if(a[1] < b[1]):
-            return 'Positive'
-        return 'Negative'
-    if(a[1] < b[1]):
-        return 'Negative'
-    return 'Positive'
-
-def makePattern(points:[list])->[str,str]:
-    return [makeLine(points[0], points[1]), makeLine(points[0], points[2])]
-
-def matchPattern(pattern:[str,str], points:[int,int]) -> list:
-    print(pattern)
-    options = {'Up'    : {'Negative':[1,4,3,2], 'Positive':[2,3,4,1]},
-               'Right' : {'Positive':[4,3,2,1], 'Negative':[1,2,3,4]},
-               'Down'  : {'Negative':[3,2,1,4], 'Positive':[4,1,2,3]},
-               'Left'  : {'Positive':[2,1,4,3], 'Negative':[3,4,1,2]}
-               }
-    order = options[pattern[0]][pattern[1]]
-    return [[points[i], order[i]] for i in range(4)]
+def score(points:[[int,int]]) -> [[[int,int],int]]:
+    '''find the left most point; find the next leftmost point; compare y values to determine which is top left and bottom left'''
+    # leftmost
+    minX:int = points[0][0]
+    minXI:int = 0
+    for i in range(len(points[1:])):
+        if points[i][0] < minX:
+            minX = points[i][0]
+            minXI = i
+    # next leftmost
+    nextMinXI:int = 0 if minXI != 0 else 1
+    nextMinX:int = points[nextMinXI][0]
+    for i in range(len(points)):
+        if i != minXI and points[i][0] < nextMinX:
+            nextMinXI = i
+            nextMinX = points[i][0]
+    topI = minXI if points[minXI][1] > points[nextMinXI][1] else nextMinXI
+    bottomI = nextMinXI if topI == minXI else minXI
+    sign:int = bottomI- topI  # +-1
+    return [[points[i], (sign)*(topI - i) % len(points)] for i in range(len(points))]
+    
 
 def sortPoints(points:[list])->[list]:
-    print(points)
-    newPoints = matchPattern(makePattern(points), points)
+    newPoints = score(points)
     newPoints.sort(key = lambda i : i[1])
     return [i[0] for i in newPoints]
 
 
 
 addShapes()
-
 
