@@ -66,6 +66,9 @@ def addShapes():
     jsonName = 'record_image_vol_' + VOLUME_NUM + '_num_' + IMAGE_NUM + '.json'
 
     os.chdir(r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\row from full training')
+    with open(jsonName,'r') as og:
+        with open(jsonName + '.bak', 'w') as bak:
+            bak.write(og.read())
     j = json.load(open(jsonName,'r'))
     shapes = j['shapes']
     sortedShapes = list()
