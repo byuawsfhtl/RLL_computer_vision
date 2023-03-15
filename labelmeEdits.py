@@ -11,11 +11,47 @@ IMAGE_NUM = '1'
 import os
 import json
 
+'''
+loadFile(fileName:str, workingDir:str) -> dict:
+    Move into the directory and return the json for the provided file
+
+    example: loadFile('record_image_vol_88_num_5.json', r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\row from full training')
+
+
+addShapes(jsonName:str, workingDir:str = r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\row from full training'):
+    Interpolates between shapes; if a user annotated every other, this fills in the missing shapes
+
+    example: addShapes('record_image_vol_88_num_5.json', r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\row from full training')
+
+
+checkShapes(workingDir:str = r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\row from full training'):
+    Moves thru the folder and outputs image names with bad polygons
+    A polygon is bad if there are not exactly 4 points
+
+    example: checkShapes(r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\row from full training')
+
+
+rectToPoly(j:dict) -> dict:
+    Changes rectangles (model output) to polygons (easier to adjust for training)
+
+    example: rectToPoly(loadFile('record_image_vol_88_num_5.json', r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\row from full training'))
+
+def orderFile(j:dict) -> dict:
+    Sorts the shapes from top to bottom, left page then right page
+
+    example: orderFile(loadFile('record_image_vol_88_num_5.json', r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\row from full training'))
+
+
+smooth(j:dict, smoothFactor:float = 1.00) -> dict:
+    Moves the right/left sides for each box towards to average for that page
+    Assumes sorted polygons
+    Ensures leftmost and rightmost lines are the same
+
+    example: smooth(loadFile('record_image_vol_88_num_5.json', r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\row from full training'), 0.75)
+'''
 
 
 '''              ===labelme points===
-order placed
-
 -x-
 low -> high
 
@@ -24,15 +60,10 @@ low  |
 high V
 '''
 
-
-'''              ===user instructions===
-joins then happen between shape[i] and shape[i+1]
- an exception when shape[i] is bottom of page 1 and shape[i+1] is top of page 2 
-'''
-
 shapesAdded = 0
 
 def loadFile(fileName:str, workingDir:str) -> dict:
+    '''Move into the directory and return the json for the provided file'''
     os.chdir(workingDir)
     return json.load(open(fileName,'r'))
 
