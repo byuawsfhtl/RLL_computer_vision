@@ -6,10 +6,11 @@ ROW_LENGTH = 1000
 X_GROUPING = 900
 
 VOLUME_NUM = '90'
-IMAGE_NUM = '1'
+IMAGE_NUM = '14'
 
 import os
 import json
+
 
 '''
 loadFile(fileName:str, workingDir:str) -> dict:
@@ -217,25 +218,31 @@ def smooth(j:dict, smoothFactor:float = 1.00) -> dict:
             break
 
     for page in [range(lastLeft+1), range(lastLeft+1, len(shapes))]:
-        avgLeft:float = 0
-        avgRight:float = 0
+        lefts:list = []
+        rights:list = []
+        #avgLeft:float = 0
+        #avgRight:float = 0
         for i in page:
             shape = shapes[i]
-            avgLeft += shape['points'][0][0]
-            avgRight += shape['points'][1][0]
-        avgLeft /= lastLeft
-        avgRight /= lastLeft
+            #avgLeft += shape['points'][0][0]
+            #avgRight += shape['points'][1][0]
+            lefts.append(shape['points'][0][0])
+            rights.append(shape['points'][1][0])
+        #avgLeft /= lastLeft
+        #avgRight /= lastLeft
+        medianLeft = lefts[int(len(lefts)/2)]
+        medianRight = rights[int(len(rights)/2)]
 
         for i in page:
             shape = shapes[i]
             points = shape['points']
             left = points[0][0]
-            leftBump = (avgLeft - left) * smoothFactor
+            leftBump = (medianLeft - left) * smoothFactor
             points[0][0] += leftBump
             points[3][0] += leftBump
 
             right = points[1][0]
-            rightBump = (avgRight - right) * smoothFactor
+            rightBump = (medianRight - right) * smoothFactor
             points[1][0] += rightBump
             points[2][0] += rightBump
             shape['points'] = points
@@ -244,12 +251,16 @@ def smooth(j:dict, smoothFactor:float = 1.00) -> dict:
     j['shapes'] = shapes
     return j
 
-jsonName = 'record_image_vol_' + VOLUME_NUM + '_num_' + IMAGE_NUM + '.jpg.json'
+#jsonName = 'record_image_vol_' + VOLUME_NUM + '_num_' + IMAGE_NUM + '.json'
 workingDir = r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\predicted'
-j = loadFile(jsonName, workingDir)
-old = j.copy()
-for f in [rectToPoly, orderFile, lambda x: smooth(x, 1)]:
-    new = f(old)
-    old = new.copy()
-saveFile(jsonName, old)
+os.chdir(workingDir)
+for fileName in os.listdir():
+    if '.json' in fileName:
+        j = loadFile(fileName, workingDir)
+        old = j.copy()
+        for f in [rectToPoly, orderFile, lambda x: smooth(x, 0.75)]:
+            new = f(old)
+            old = new.copy()
+        saveFile(fileName, old)
+        print(fileName)
 
