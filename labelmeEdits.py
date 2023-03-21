@@ -183,12 +183,22 @@ def rectToPoly(j:dict) -> dict:
     j['shapes'] = shapes
     return j
 
+def orderKey(shape):
+    if shape['label'] != 'row':
+        if 'rightPage' in shape['label']:
+            return [0,0]
+        else:
+            return [10000000000000,0]
+    point = shape['points']:
+    mid = center(points)
+    return [int(mid[0] / X_GROUPING), mid[1]]
+
 def order(shapes:[dict]) -> [dict]:
     # list comprehension allows for 'x+1 where x = 0' style expressions 
     # this function order points first by x (broken into large chunks, splitting the pages)
     #  it then sorts by y value (lower y value is higher on the page) 
-    key = lambda shape : [[int(mid[0] / X_GROUPING), mid[1]] for mid in [center(points) for points in [shape['points']]]][0]
-    shapes.sort(key = key)
+    # key = lambda shape : [[int(mid[0] / X_GROUPING), mid[1]] for mid in [center(points) for points in [shape['points']]]][0]
+    shapes.sort(key = orderKey)
     return shapes
 
 def center(points:[[float,float]]) -> [float,float]:
@@ -251,16 +261,20 @@ def smooth(j:dict, smoothFactor:float = 1.00) -> dict:
     j['shapes'] = shapes
     return j
 
-#jsonName = 'record_image_vol_' + VOLUME_NUM + '_num_' + IMAGE_NUM + '.json'
-workingDir = r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\predicted'
-os.chdir(workingDir)
-for fileName in os.listdir():
-    if '.json' in fileName:
-        j = loadFile(fileName, workingDir)
-        old = j.copy()
-        for f in [rectToPoly, orderFile, lambda x: smooth(x, 0.75)]:
-            new = f(old)
-            old = new.copy()
-        saveFile(fileName, old)
-        print(fileName)
+def processPredictions(workingDir:str = r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\predicted'):    
+    os.chdir(workingDir)
+    for fileName in os.listdir():
+        if '.json' in fileName:
+            j = loadFile(fileName, workingDir)
+            old = j.copy()
+            for f in [rectToPoly, orderFile, lambda x: smooth(x, 0.75)]:
+                new = f(old)
+                old = new.copy()
+            saveFile(fileName, old)
+            print(fileName)
 
+def sideCorrect(j:dict) -> dict:
+    pass
+    
+
+sideCorrect('record_image_vol_90_num_21.json')
