@@ -6,7 +6,12 @@ ROW_LENGTH = 1000
 X_GROUPING = 900
 
 VOLUME_NUM = '90'
-IMAGE_NUM = '14'
+IMAGE_NUM = '92'
+
+### ENDED ON 90 92
+
+jsonName = 'record_image_vol_' + VOLUME_NUM + '_num_' + IMAGE_NUM + '.json'
+workingDir = r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\predicted'
 
 import os
 import json
@@ -17,6 +22,12 @@ loadFile(fileName:str, workingDir:str) -> dict:
     Move into the directory and return the json for the provided file
 
     example: loadFile('record_image_vol_88_num_5.json', r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\row from full training')
+
+
+def saveFile(fileName:str, data):
+    Dumps the data (json parsable) into fileName
+
+    example: saveFile(jsonName, orderFile(loadFile(jsonName, workingDir)))
 
 
 addShapes(jsonName:str, workingDir:str = r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\row from full training'):
@@ -36,6 +47,7 @@ rectToPoly(j:dict) -> dict:
     Changes rectangles (model output) to polygons (easier to adjust for training)
 
     example: rectToPoly(loadFile('record_image_vol_88_num_5.json', r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\row from full training'))
+
 
 def orderFile(j:dict) -> dict:
     Sorts the shapes from top to bottom, left page then right page
@@ -69,6 +81,7 @@ def loadFile(fileName:str, workingDir:str) -> dict:
     return json.load(open(fileName,'r'))
 
 def saveFile(fileName:str, data):
+    '''Dumps the data (json parsable) into fileName'''
     json.dump(data, open(fileName, 'w'))
 
 def pageBreak(a:[list], b:[list]) -> bool:
@@ -185,11 +198,8 @@ def rectToPoly(j:dict) -> dict:
 
 def orderKey(shape):
     if shape['label'] != 'row':
-        if 'rightPage' in shape['label']:
-            return [0,0]
-        else:
-            return [10000000000000,0]
-    point = shape['points']:
+        return [1000000000000000,0]
+    points = shape['points']
     mid = center(points)
     return [int(mid[0] / X_GROUPING), mid[1]]
 
@@ -211,10 +221,13 @@ def orderFile(j:dict) -> dict:
     j['shapes'] = order(j['shapes'])
     return j
 
-def smooth(j:dict, smoothFactor:float = 1.00) -> dict:
-    '''Moves the right/left sides for each box towards to average for that page
+def smooth(j:dict, smoothFactor:float = 1.00, method:str='median', goalList=[[None,None],[None,None]]) -> dict:
+    '''Moves the right/left sides for each box towards some normal value
     Assumes sorted polygons
-    Ensures leftmost and rightmost lines are the same'''
+    Ensures leftmost and rightmost lines are approximately the same
+    Method can be 'median', 'average', or 'goal'. goalList is only used when method is 'goal'
+    goalList is in form [[leftPageLeftSide, leftPageRightSide], [rightPageLeftSide, rightPageRightSide]]
+    None in any of these positions will not adjust the shape'''
     shapes:[dict] = j['shapes']
     # find the page break
     # for each page
@@ -227,41 +240,65 @@ def smooth(j:dict, smoothFactor:float = 1.00) -> dict:
             lastLeft = i
             break
 
-    for page in [range(lastLeft+1), range(lastLeft+1, len(shapes))]:
-        lefts:list = []
-        rights:list = []
-        #avgLeft:float = 0
-        #avgRight:float = 0
-        for i in page:
-            shape = shapes[i]
-            #avgLeft += shape['points'][0][0]
-            #avgRight += shape['points'][1][0]
-            lefts.append(shape['points'][0][0])
-            rights.append(shape['points'][1][0])
-        #avgLeft /= lastLeft
-        #avgRight /= lastLeft
-        medianLeft = lefts[int(len(lefts)/2)]
-        medianRight = rights[int(len(rights)/2)]
+    for pageI in range(2):
+        page = [range(lastLeft+1), range(lastLeft+1, len(shapes))][pageI]
+        leftAccumulator = None
+        rightAccumulator = None
+        accumulation = lambda acc, newValue: acc
+        goal = lambda acc: acc
+        if method == 'median':
+            leftAccumulator:list = []
+            rightAccumulator:list = []
+            accumulation = lambda acc, newValue: acc + [newValue]
+            goal = lambda acc: acc[int(len(acc)/2)]
+        elif method == 'average':
+            leftAccumulator:float = 0
+            rightAccumulator:float = 0
+            accumulation = lambda acc, newValue: acc + newValue
+            goal = lambda acc: acc / lastLeft
+
+        if method == 'goal':
+            print('goalList', goalList)
+            leftGoal = goalList[pageI][0]  # [[leftPageLeftSide, leftPageRightSide], [rightPageLeftSide, rightPageRightSide]]
+            rightGoal = goalList[pageI][1]
+            print('goals', leftGoal, rightGoal)
+            print('page', page, '\n')
+        else:
+            for i in page:
+                shape = shapes[i]
+                if shape['label'] != 'row':
+                    continue
+                leftAccumulator = accumulation(leftAccumulator, shape['points'][0][0])
+                rightAccumulator = accumulation(rightAccumulator, shape['points'][0][0])
+            leftGoal = goal(leftAccumulator)
+            rightGoal = goal(rightAccumulator)
 
         for i in page:
             shape = shapes[i]
+            if shape['label'] != 'row':
+                continue
             points = shape['points']
-            left = points[0][0]
-            leftBump = (medianLeft - left) * smoothFactor
-            points[0][0] += leftBump
-            points[3][0] += leftBump
+            if leftGoal is not None:
+                left = points[0][0]
+                leftBump = (leftGoal - left) * smoothFactor
+                points[0][0] += leftBump
+                points[3][0] += leftBump
 
-            right = points[1][0]
-            rightBump = (medianRight - right) * smoothFactor
-            points[1][0] += rightBump
-            points[2][0] += rightBump
+            if rightGoal is not None:
+                right = points[1][0]
+                rightBump = (rightGoal - right) * smoothFactor
+                points[1][0] += rightBump
+                points[2][0] += rightBump
+
             shape['points'] = points
             shapes[i] = shape
 
     j['shapes'] = shapes
     return j
 
-def processPredictions(workingDir:str = r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\predicted'):    
+def processPredictions(workingDir:str = r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\predicted'):
+    '''Runs most of the above processes on all images in the workingDir
+    This ends up ordering and smoothing predictions'''
     os.chdir(workingDir)
     for fileName in os.listdir():
         if '.json' in fileName:
@@ -273,8 +310,42 @@ def processPredictions(workingDir:str = r'V:\FHSS-JoePriceResearch\papers\curren
             saveFile(fileName, old)
             print(fileName)
 
-def sideCorrect(j:dict) -> dict:
-    pass
+def discoverBounds(j:dict) -> [[float,float],[float,float]]:  # helper for sideCorrect 
+    shapes = j['shapes']
+    bounds = [[None,None],[None,None]]
+    avgX = lambda shape : sum([i[0] for i in shape['points']]) / len(shape['points'])
+    for shape in shapes:
+        label = shape['label']
+        if label == 'row':
+            continue
+        elif label == 'leftPageLeftSide':
+            bounds[0][0] = avgX(shape)
+        elif label == 'leftPageRightSide':
+            bounds[0][1] = avgX(shape)
+        elif label == 'rightPageLeftSide':
+            bounds[1][0] = avgX(shape)
+        elif label == 'rightPageRightSide':
+            bounds[1][1] = avgX(shape)
+    return bounds
+
+def removeBoundsShapes(j:dict) -> dict:  # helper for sideCorrect
+    shapes = j['shapes']
+    newShapes:list = []
+    for shape in shapes:
+        if shape['label'] == 'row':
+            newShapes.append(shape)
+    j['shapes'] = newShapes
+    return j
+
+def sideCorrect(j:dict, smoothFactor:float=0.85) -> dict:
+    '''When there are bounds lines on an image, move the corresponding sides to match those bounds
+    A bounds line is a polygon with 2 points and one of the following labels:
+    'leftPageLeftSide', 'leftPageRightSide', 'rightPageLeftSide', 'rightPageRightSide' '''
+    bounds = discoverBounds(orderFile(j))
+    return removeBoundsShapes(smooth(j, smoothFactor, 'goal', bounds))
     
 
-sideCorrect('record_image_vol_90_num_21.json')
+j = loadFile(jsonName, workingDir)
+j2 = sideCorrect(j)
+saveFile(jsonName, j2)
+
