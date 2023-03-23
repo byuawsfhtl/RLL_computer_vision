@@ -6,9 +6,9 @@ ROW_LENGTH = 1000
 X_GROUPING = 900
 
 VOLUME_NUM = '90'
-IMAGE_NUM = '92'
+IMAGE_NUM = '94'
 
-### ENDED ON 90 92
+### ENDED ON 90 94
 
 jsonName = 'record_image_vol_' + VOLUME_NUM + '_num_' + IMAGE_NUM + '.json'
 workingDir = r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\predicted'
