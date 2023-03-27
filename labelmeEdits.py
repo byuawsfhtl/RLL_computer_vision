@@ -6,12 +6,12 @@ ROW_LENGTH = 1000
 X_GROUPING = 900
 
 VOLUME_NUM = '94'
-IMAGE_NUM = '52'
+IMAGE_NUM = '86'
 
-### ENDED ON 90 94
+### ENDED ON 94 90
 
 jsonName = 'record_image_vol_' + VOLUME_NUM + '_num_' + IMAGE_NUM + '.json'
-workingDir = r'V:\papers\current\colorado_land_patents\data\tract books\predicted'
+workingDir = r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\predicted'
 
 import os
 import json
@@ -258,8 +258,11 @@ def smooth(j:dict, smoothFactor:float = 1.00, method:str='median', goalList=[[No
             goal = lambda acc: acc / lastLeft
 
         if method == 'goal':
+            print('goalList', goalList)
             leftGoal = goalList[pageI][0]  # [[leftPageLeftSide, leftPageRightSide], [rightPageLeftSide, rightPageRightSide]]
             rightGoal = goalList[pageI][1]
+            print('goals', leftGoal, rightGoal)
+            print('page', page, '\n')
         else:
             for i in page:
                 shape = shapes[i]
