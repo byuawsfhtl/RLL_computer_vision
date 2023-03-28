@@ -6,12 +6,12 @@ ROW_LENGTH = 1000
 X_GROUPING = 900
 
 VOLUME_NUM = '94'
-IMAGE_NUM = '86'
+IMAGE_NUM = '94'
 
 ### ENDED ON 94 90
 
 jsonName = 'record_image_vol_' + VOLUME_NUM + '_num_' + IMAGE_NUM + '.json'
-workingDir = r'V:\FHSS-JoePriceResearch\papers\current\colorado_land_patents\data\tract books\predicted'
+workingDir = r'V:\papers\current\colorado_land_patents\data\tract books\row training data 2'
 
 import os
 import json
@@ -79,6 +79,10 @@ def loadFile(fileName:str, workingDir:str) -> dict:
     '''Move into the directory and return the json for the provided file'''
     os.chdir(workingDir)
     return json.load(open(fileName,'r'))
+
+def loadFile(fileName:str) -> dict:
+    '''Don't move into the directory, but the same as above'''
+    return json.load(open(fileName, 'r'))
 
 def saveFile(fileName:str, data):
     '''Dumps the data (json parsable) into fileName'''
@@ -343,7 +347,7 @@ def sideCorrect(j:dict, smoothFactor:float=0.85) -> dict:
     'leftPageLeftSide', 'leftPageRightSide', 'rightPageLeftSide', 'rightPageRightSide' '''
     bounds = discoverBounds(orderFile(j))
     return removeBoundsShapes(smooth(j, smoothFactor, 'goal', bounds))
-    
+
 
 j = loadFile(jsonName, workingDir)
 j2 = sideCorrect(j)
